@@ -1,28 +1,31 @@
-import React, { useState } from 'react';
+// components/FarcasterLogin.js
+import React, { useState, useEffect } from 'react';
 import MusicPreferences from './MusicPreferences';
 import supabase from '../lib/supabase';
+import { SignInButton, useSignIn, Status } from '@farcaster/auth-kit';
 
 export default function FarcasterLogin() {
-  const [user, setUser] = useState(null);
   const [showPreferences, setShowPreferences] = useState(false);
   const [recommendation, setRecommendation] = useState(null);
   
-  const handleLogin = async () => {
-    // In a real implementation, this would use actual Farcaster auth
-    const mockUserData = {
-      fid: "123456",
-      displayName: "Test User",
-      pfp: { url: "https://i.pravatar.cc/150?img=3" }
-    };
-    
-    // Save user to Supabase
+  // Use Farcaster's authentication hook
+  const { status, signIn, signOut, user } = useSignIn();
+  
+  // Handle successful authentication
+  useEffect(() => {
+    if (status === Status.Success && user) {
+      saveUserToSupabase(user);
+    }
+  }, [status, user]);
+  
+  const saveUserToSupabase = async (userData) => {
     try {
       const { data, error } = await supabase
         .from('users')
         .upsert({
-          farcaster_id: mockUserData.fid,
-          username: mockUserData.displayName,
-          profile_image_url: mockUserData.pfp.url
+          farcaster_id: userData.fid.toString(),
+          username: userData.username || userData.displayName,
+          profile_image_url: userData.pfp || userData.pfpUrl || ''
         }, { onConflict: 'farcaster_id' });
       
       if (error) throw error;
@@ -30,8 +33,6 @@ export default function FarcasterLogin() {
     } catch (error) {
       console.error('Error saving user:', error);
     }
-    
-    setUser(mockUserData);
   };
   
   const handlePreferences = async (preferences) => {
@@ -39,10 +40,14 @@ export default function FarcasterLogin() {
     
     // Save preferences to Supabase
     try {
+      if (!user || !user.fid) {
+        throw new Error('User not authenticated');
+      }
+      
       const { data, error } = await supabase
         .from('user_preferences')
         .upsert({
-          user_id: user.fid, // In a real app, this would be the Supabase user ID
+          user_id: user.fid.toString(),
           selected_decades: preferences.decades,
           selected_genres: preferences.genres
         }, { onConflict: 'user_id' });
@@ -139,32 +144,33 @@ export default function FarcasterLogin() {
   
   return (
     <div>
-      {!user ? (
-        <button 
-          onClick={handleLogin}
-          style={{
-            backgroundColor: '#6E56CF',
-            color: 'white',
-            padding: '10px 20px',
-            borderRadius: '8px',
-            border: 'none',
-            fontSize: '16px',
-            cursor: 'pointer'
-          }}
-        >
-          Connect with Farcaster
-        </button>
+      {status !== Status.Success ? (
+        <SignInButton onSuccess={signIn}>
+          <button 
+            style={{
+              backgroundColor: '#6E56CF',
+              color: 'white',
+              padding: '10px 20px',
+              borderRadius: '8px',
+              border: 'none',
+              fontSize: '16px',
+              cursor: 'pointer'
+            }}
+          >
+            Connect with Farcaster
+          </button>
+        </SignInButton>
       ) : (
         <div style={{ marginTop: '20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
             <img 
-              src={user.pfp.url} 
+              src={user.pfp || user.pfpUrl || 'https://i.pravatar.cc/150?img=3'} 
               alt="Profile" 
               width={40} 
               height={40} 
               style={{ borderRadius: '50%' }}
             />
-            <p>Welcome, {user.displayName}!</p>
+            <p>Welcome, {user.username || user.displayName}!</p>
           </div>
           
           {!showPreferences && !recommendation && (
@@ -197,19 +203,18 @@ export default function FarcasterLogin() {
               <p style={{ marginBottom: '15px' }}>By {recommendation.artist} • {recommendation.decade} • {recommendation.genre}</p>
               
               <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden', maxWidth: '100%' }}>
-              // Update this part of your FarcasterLogin component
-<iframe
-  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
-  src={recommendation && recommendation.youtube_url ? 
-    `https://www.youtube.com/embed/${recommendation.youtube_url.includes('v=') ? 
-      recommendation.youtube_url.split('v=')[1] : 
-      recommendation.youtube_url.split('/').pop()}` : 
-    ''}
-  title={recommendation ? recommendation.title : ''}
-  frameBorder="0"
-  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-  allowFullScreen
-></iframe>
+                <iframe
+                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+                  src={recommendation && recommendation.youtube_url ? 
+                    `https://www.youtube.com/embed/${recommendation.youtube_url.includes('v=') ? 
+                      recommendation.youtube_url.split('v=')[1] : 
+                      recommendation.youtube_url.split('/').pop()}` : 
+                    ''}
+                  title={recommendation ? recommendation.title : ''}
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                ></iframe>
               </div>
               
               <div style={{ marginTop: '20px' }}>
@@ -233,7 +238,7 @@ export default function FarcasterLogin() {
                 </button>
                 
                 <button
-                  onClick={() => setUser(null)}
+                  onClick={signOut}
                   style={{
                     backgroundColor: '#EF4444',
                     color: 'white',
