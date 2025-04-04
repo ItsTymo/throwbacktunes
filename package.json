@@ -12,6 +12,7 @@
     "@farcaster/auth-kit": "^0.6.0",
     "@farcaster/connect-kit": "^0.0.31",
     "@supabase/supabase-js": "^2.49.4",
+    "@vercel/og": "^0.6.8",
     "next": "15.2.4",
     "papaparse": "^5.5.2",
     "react": "^19.0.0",
