@@ -8,13 +8,6 @@ export default function Home() {
       <Head>
         <title>Throwback Tunes</title>
         <meta name="description" content="Rediscover your favorite music from past decades" />
-        
-        {/* Farcaster Frame Meta Tags */}
-        <meta property="fc:frame" content="vNext" />
-        <meta property="fc:frame:image" content="https://throwbacktunes.vercel.app/og-image.png" />
-        <meta property="og:image" content="https://throwbacktunes.vercel.app/og-image.png" />
-        <meta property="fc:frame:button:1" content="Get a Throwback Tune" />
-        <meta property="fc:frame:post_url" content="https://throwbacktunes.vercel.app/api/frame" />
       </Head>
       
       <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px', textAlign: 'center' }}>

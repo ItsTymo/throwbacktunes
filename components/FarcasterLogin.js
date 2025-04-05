@@ -2,21 +2,21 @@
 import React, { useState, useEffect } from 'react';
 import MusicPreferences from './MusicPreferences';
 import supabase from '../lib/supabase';
-import { SignInButton, useSignIn, Status } from '@farcaster/auth-kit';
+import { SignInButton, useSignIn } from '@farcaster/auth-kit';
 
 export default function FarcasterLogin() {
   const [showPreferences, setShowPreferences] = useState(false);
   const [recommendation, setRecommendation] = useState(null);
   
   // Use Farcaster's authentication hook
-  const { status, signIn, signOut, user } = useSignIn();
+  const { signIn, signOut, isSuccess, data: user } = useSignIn();
   
   // Handle successful authentication
   useEffect(() => {
-    if (status === Status.Success && user) {
+    if (isSuccess && user) {
       saveUserToSupabase(user);
     }
-  }, [status, user]);
+  }, [isSuccess, user]);
   
   const saveUserToSupabase = async (userData) => {
     try {
@@ -144,7 +144,7 @@ export default function FarcasterLogin() {
   
   return (
     <div>
-      {status !== Status.Success ? (
+      {!isSuccess ? (
         <SignInButton onSuccess={signIn}>
           <button 
             style={{
