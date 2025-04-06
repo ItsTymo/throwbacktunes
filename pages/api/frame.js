@@ -2,16 +2,15 @@
 import supabase from '../../lib/supabase';
 
 export default async function handler(req, res) {
-  // Set cache control headers
+  // Set appropriate headers
   res.setHeader('Cache-Control', 'public, max-age=86400');
-  res.setHeader('X-Frame-Options', 'ALLOW-FROM https://warpcast.com/');
   
-  // Handle GET requests (for validation)
+  // For GET requests (Frame validation)
   if (req.method === 'GET') {
     return res.status(200).json({
       frames: {
         version: 'vNext',
-        image: `https://throwbacktunes.vercel.app/og-image.png`,
+        image: 'https://throwbacktunes.vercel.app/og-image.png',
         buttons: [
           {
             label: "Get a Throwback Tune",
@@ -22,10 +21,10 @@ export default async function handler(req, res) {
     });
   }
   
-  // Handle POST requests (for button clicks)
+  // For POST requests (button clicks)
   if (req.method === 'POST') {
     try {
-      // Get a random song recommendation
+      // Get a random song
       let { data: songs, error } = await supabase
         .from('songs')
         .select('*')
@@ -40,7 +39,7 @@ export default async function handler(req, res) {
       // Pick a random song
       const randomSong = songs[Math.floor(Math.random() * songs.length)];
       
-      // Create a frame response with the song
+      // Create the response
       return res.status(200).json({
         frames: {
           version: 'vNext',
@@ -59,11 +58,11 @@ export default async function handler(req, res) {
         }
       });
     } catch (error) {
-      console.error('Error in frame handler:', error);
-      return res.status(500).json({ 
+      console.error('Error:', error);
+      return res.status(200).json({ 
         frames: {
           version: 'vNext',
-          image: `https://throwbacktunes.vercel.app/og-image.png`,
+          image: 'https://throwbacktunes.vercel.app/og-image.png',
           buttons: [
             {
               label: "Try Again",
