@@ -31,7 +31,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       frames: {
         version: 'vNext',
-        image: `https://throwbacktunes-a4xdcr7fl-tymos-projects-8d562207.vercel.app/api/og?title=${encodeURIComponent(randomSong.title)}&artist=${encodeURIComponent(randomSong.artist)}&decade=${encodeURIComponent(randomSong.decade)}&genre=${encodeURIComponent(randomSong.genre)}`,
+        image: `https://throwbacktunes.vercel.app/api/og?title=${encodeURIComponent(randomSong.title)}&artist=${encodeURIComponent(randomSong.artist)}&decade=${encodeURIComponent(randomSong.decade)}&genre=${encodeURIComponent(randomSong.genre)}`,
         buttons: [
           {
             label: "Get Another Song",
